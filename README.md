@@ -8,7 +8,7 @@ defines the deterministic data model for addresses, messages, drafts, send
 effects, and receipts.
 
 ```text
-mail = address + message + draft + send-effect + receipt
+mail = address + message + draft + send-effect + receipt + inbound
 ```
 
 ## Boundaries
@@ -18,9 +18,12 @@ mail = address + message + draft + send-effect + receipt
 | `mail.message` | addresses, message envelope, body parts, validation |
 | `mail.draft` | draft lifecycle and send-effect creation |
 | `mail.receipt` | provider-independent delivery receipts |
+| `mail.inbound` | provider-independent representation of a received message |
 
-Sending is intentionally outside this repo. Use `kotoba-lang/mailer` to map
-approved mail effects to a provider request.
+Sending and receiving are intentionally outside this repo. Use
+`kotoba-lang/mailer` to map approved mail effects to a provider request; use a
+host capability (Cloudflare Email Worker, SMTP server, IMAP poller, ...) to
+parse the wire format into the plain map `mail.inbound/from-parts` expects.
 
 ## Example
 
