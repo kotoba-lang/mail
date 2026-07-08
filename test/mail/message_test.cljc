@@ -21,7 +21,7 @@
                         :text nil})]
     (is (= #{:invalid-from :missing-to :missing-subject :missing-body}
            (set (map :mail.error/code (msg/validation-errors m)))))
-    (is (thrown? clojure.lang.ExceptionInfo (msg/assert-valid-message m)))))
+    (is (thrown? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error) (msg/assert-valid-message m)))))
 
 (deftest draft-send-effect-requires-approval
   (let [m (msg/message {:from "ops@example.com"
@@ -29,7 +29,7 @@
                         :subject "Deploy"
                         :text "Approved?"})
         d (draft/draft "d1" m)]
-    (is (thrown? clojure.lang.ExceptionInfo (draft/send-effect d)))
+    (is (thrown? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error) (draft/send-effect d)))
     (is (= :mail/send (:mail.effect/type (draft/send-effect (draft/approve d {:by "human"})))))))
 
 (deftest receipt-fact-is-provider-independent
