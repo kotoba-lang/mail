@@ -8,7 +8,7 @@ defines the deterministic data model for addresses, messages, drafts, send
 effects, and receipts.
 
 ```text
-mail = address + message + draft + send-effect + receipt + inbound
+mail = address + message + draft + send-effect + receipt + inbound + mailbox/thread
 ```
 
 ## Boundaries
