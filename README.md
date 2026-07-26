@@ -19,6 +19,7 @@ mail = address + message + draft + send-effect + receipt + inbound
 | `mail.draft` | draft lifecycle and send-effect creation |
 | `mail.receipt` | provider-independent delivery receipts |
 | `mail.inbound` | provider-independent representation of a received message |
+| `mail.mailbox` | provider-independent mailbox, threads, labels, read/trash state and used-byte accounting |
 
 Sending and receiving are intentionally outside this repo. Use
 `kotoba-lang/mailer` to map approved mail effects to a provider request; use a
