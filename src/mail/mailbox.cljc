@@ -16,15 +16,35 @@
 (defn- body-bytes [message]
   (reduce + 0 (map #(count (str (:mail.part/body %))) (:mail/parts message))))
 
-(defn message-entry [id thread-id message attrs]
-  {:mailbox.message/id id
-   :mailbox.message/thread-id thread-id
-   :mailbox.message/message message
-   :mailbox.message/attachments (vec (:attachments attrs))
-   :mailbox.message/labels (set (or (:labels attrs) #{:inbox}))
-   :mailbox.message/read? (boolean (:read? attrs))
-   :mailbox.message/received-at (:received-at attrs)
-   :mailbox.message/size-bytes (or (:size-bytes attrs) (body-bytes message))})
+(defn message-entry
+  "`attrs` may carry `:sealed` — an opaque map describing content this mailbox
+  holds but cannot read (an encryption envelope and whatever the holder needs
+  to open it). This model does not interpret it; it exists so that a sealed
+  message can BE a message here.
+
+  Without it the only way to store one was to fabricate an empty `message`,
+  which is not a smaller truth than the real one but a different and false one:
+  a reader cannot tell an empty message from one whose content is elsewhere.
+
+  A sealed entry should pass `:size-bytes`, since `body-bytes` of a message
+  with no parts is 0 and a mailbox that reports 0 bytes used is wrong rather
+  than merely imprecise."
+  [id thread-id message attrs]
+  (cond-> {:mailbox.message/id id
+           :mailbox.message/thread-id thread-id
+           :mailbox.message/message message
+           :mailbox.message/attachments (vec (:attachments attrs))
+           :mailbox.message/labels (set (or (:labels attrs) #{:inbox}))
+           :mailbox.message/read? (boolean (:read? attrs))
+           :mailbox.message/received-at (:received-at attrs)
+           :mailbox.message/size-bytes (or (:size-bytes attrs) (body-bytes message))}
+    (:sealed attrs) (assoc :mailbox.message/sealed (:sealed attrs))))
+
+(defn sealed?
+  "Is this entry's content sealed — i.e. present in the mailbox but unreadable
+  by whoever is holding the mailbox?"
+  [entry]
+  (some? (:mailbox.message/sealed entry)))
 
 (defn deliver
   "Idempotently add a message and attach it to a thread."
@@ -72,7 +92,16 @@
                  (vals (:mailbox/messages box)))))
 
 (defn search
-  "Case-insensitive search over envelope, subject and body with optional filters."
+  "Case-insensitive search over envelope, subject and body with optional
+  filters.
+
+  **Sealed entries can only ever match on what is not sealed.** Whatever is
+  inside the envelope is invisible here, so a query that would have matched the
+  subject or the body of a sealed message returns nothing — a false negative,
+  by construction, and not a bug to be fixed at this layer. Callers that must
+  search sealed content have to do it where the content can be opened, which is
+  the client. This is stated rather than left to be discovered because a search
+  that silently under-reports is worse than one that refuses."
   [box query {:keys [label unread?]}]
   (let [needle (str/lower-case (or query ""))
         matches? (fn [entry]

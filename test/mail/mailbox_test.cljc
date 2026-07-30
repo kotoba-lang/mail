@@ -1,5 +1,5 @@
 (ns mail.mailbox-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [clojure.test :refer [deftest is testing]]
             [mail.mailbox :as mailbox]
             [mail.message :as message]))
 
@@ -33,3 +33,47 @@
     (is (= ["m1"] (mapv :mailbox.message/id (mailbox/search box "OSAKA" {}))))
     (is (= 1 (count (mailbox/search box "roadmap" {:label :inbox :unread? true}))))
     (is (empty? (mailbox/search box "roadmap" {:unread? false})))))
+
+(deftest a-sealed-message-can-be-a-message-here
+  (testing "before this, the only way to store one was to fabricate an empty
+            message -- which is not a smaller truth than the real one but a
+            different and false one: nothing distinguishes an empty message
+            from one whose content is elsewhere"
+    (let [envelope {:epoch 1 :iv "00" :ct "ff" :plaintext-cid "r2sha256:x"}
+          m (message/message {:from "s@example.com" :to ["r@example.com"]})
+          entry (mailbox/message-entry "m1" "t1" m {:received-at "2026-07-31T00:00:00Z"
+                                                    :size-bytes 4096
+                                                    :sealed envelope})]
+      (is (mailbox/sealed? entry))
+      (is (= envelope (:mailbox.message/sealed entry)))
+      (is (= 4096 (:mailbox.message/size-bytes entry))
+          "a sealed entry reports the size it was told, not the 0 that body-bytes
+           of an empty message would give")
+      (testing "and a plaintext entry is unchanged"
+        (let [plain (mailbox/message-entry "m2" "t2" m {:received-at "x"})]
+          (is (false? (mailbox/sealed? plain)))
+          (is (not (contains? plain :mailbox.message/sealed))))))))
+
+(deftest search-cannot-see-inside-a-seal
+  (testing "a false negative by construction, not a bug at this layer: the
+            subject and body of a sealed message are simply not here. Asserted
+            so that nobody later 'fixes' search by reaching into the envelope."
+    (let [envelope {:epoch 1 :iv "00" :ct "ff"}
+          sealed-entry (mailbox/message-entry
+                        "s1" "s1"
+                        (message/message {:from "sender@example.com" :to ["r@example.com"]})
+                        {:received-at "2026-07-31T00:00:00Z" :size-bytes 10 :sealed envelope})
+          plain-entry (mailbox/message-entry
+                       "p1" "p1"
+                       (message/message {:from "other@example.com" :to ["r@example.com"]
+                                         :subject "quarterly invoice" :text "invoice body"})
+                       {:received-at "2026-07-30T00:00:00Z"})
+          box (-> (mailbox/mailbox "r" "r@example.com")
+                  (mailbox/deliver sealed-entry)
+                  (mailbox/deliver plain-entry))]
+      (is (= ["p1"] (mapv :mailbox.message/id (mailbox/search box "invoice" {})))
+          "the plaintext message matches and the sealed one cannot")
+      (is (= #{"s1" "p1"} (set (mapv :mailbox.message/id (mailbox/search box "" {}))))
+          "but a sealed message is still listed -- it is present, just unreadable")
+      (is (= ["s1"] (mapv :mailbox.message/id (mailbox/search box "sender@example.com" {})))
+          "and it still matches on what was never sealed"))))
