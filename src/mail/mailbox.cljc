@@ -1,13 +1,13 @@
 (ns mail.mailbox
   "Portable mailbox/thread/label state. Transport and persistence are injected."
   (:refer-clojure :exclude [deliver])
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def system-labels #{:inbox :sent :drafts :spam :trash :starred :important})
 
 (defn mailbox [id address]
   {:mailbox/id id
-   :mailbox/address (str/lower-case address)
+   :mailbox/address (str/lower address)
    :mailbox/messages {}
    :mailbox/threads {}
    :mailbox/labels system-labels
@@ -103,10 +103,10 @@
   the client. This is stated rather than left to be discovered because a search
   that silently under-reports is worse than one that refuses."
   [box query {:keys [label unread?]}]
-  (let [needle (str/lower-case (or query ""))
+  (let [needle (str/lower (or query ""))
         matches? (fn [entry]
                    (let [m (:mailbox.message/message entry)
-                         haystack (str/lower-case
+                         haystack (str/lower
                                    (str (:mail/from m) " " (:mail/to m) " " (:mail/cc m) " "
                                         (:mail/subject m) " "
                                         (str/join " " (map :mail.part/body (:mail/parts m)))))]

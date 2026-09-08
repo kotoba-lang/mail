@@ -1,17 +1,17 @@
 (ns mail.message
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def email-pattern #"(?i)^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$")
 
 (defn normalize-address [address]
   (cond
     (string? address)
-    {:mail.address/email (str/lower-case (str/trim address))}
+    {:mail.address/email (str/lower (str/trim address))}
 
     (map? address)
     (let [email (or (:mail.address/email address) (:email address))]
       (merge (dissoc address :email)
-             {:mail.address/email (some-> email str/trim str/lower-case)}))
+             {:mail.address/email (some-> email str/trim str/lower)}))
 
     :else
     {:mail.address/email nil}))
