@@ -1,4 +1,4 @@
-;; mail.inbound — Pure Kotoba guest (oracle: src/mail/inbound.cljc).
+;; mail.inbound — Pure Kotoba guest (oracle: src/mail/inbound.cljk).
 ;;
 ;; A received message. The oracle throws when a provider message-id is
 ;; missing; throw is not in the language (ADR-2608650000), so a missing id

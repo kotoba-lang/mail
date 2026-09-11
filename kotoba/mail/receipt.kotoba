@@ -1,4 +1,4 @@
-;; mail.receipt — Pure Kotoba guest (oracle: src/mail/receipt.cljc).
+;; mail.receipt — Pure Kotoba guest (oracle: src/mail/receipt.cljk).
 ;;
 ;; An outbound acknowledgement. The oracle throws when a provider result
 ;; carries no message-id; throw is not in the language (ADR-2608650000),

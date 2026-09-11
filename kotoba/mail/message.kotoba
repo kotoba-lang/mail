@@ -1,4 +1,4 @@
-;; mail.message — Pure Kotoba guest (oracle: src/mail/message.cljc).
+;; mail.message — Pure Kotoba guest (oracle: src/mail/message.cljk).
 ;;
 ;; Product semantics live here: what an address is, whether it is valid,
 ;; what a message is, who its recipients are, and which rules a message

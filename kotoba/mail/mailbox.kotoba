@@ -1,4 +1,4 @@
-;; mail.mailbox — Pure Kotoba guest (oracle: src/mail/mailbox.cljc).
+;; mail.mailbox — Pure Kotoba guest (oracle: src/mail/mailbox.cljk).
 ;;
 ;; Portable mailbox/thread/label state. This slice covers the structural
 ;; core: deliver (idempotent), set-read, add-label, remove-label, trash,
