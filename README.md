@@ -46,5 +46,5 @@ parse the wire format into the plain map `mail.inbound/from-parts` expects.
 ## Tests
 
 ```sh
-clojure -M:test
+kbb -M:test
 ```
