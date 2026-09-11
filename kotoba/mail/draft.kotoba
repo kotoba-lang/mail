@@ -1,4 +1,4 @@
-;; mail.draft — Pure Kotoba guest (oracle: src/mail/draft.cljc).
+;; mail.draft — Pure Kotoba guest (oracle: src/mail/draft.cljk).
 ;;
 ;; A draft that must be approved before a send effect exists. The oracle
 ;; throws on send-before-approve; throw is not in the language
